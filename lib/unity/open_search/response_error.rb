@@ -26,8 +26,8 @@ module Unity
       end
 
       # @return [String, nil]
-      def error_message
-        @data&.dig('error')
+      def reason
+        @data&.dig('reason')
       end
 
       def code
