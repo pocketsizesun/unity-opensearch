@@ -27,7 +27,7 @@ module Unity
 
       # @return [String, nil]
       def reason
-        @data&.dig('reason')
+        @data&.dig('error', 'reason')
       end
 
       def code
