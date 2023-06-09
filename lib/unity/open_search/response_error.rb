@@ -29,6 +29,10 @@ module Unity
       def error_message
         @data&.dig('error')
       end
+
+      def code
+        @response.code
+      end
     end
   end
 end

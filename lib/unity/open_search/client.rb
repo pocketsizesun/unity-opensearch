@@ -31,7 +31,14 @@ module Unity
       # @return [Hash{String => Object}]
       def request(method, path, **kwargs)
         resp = @client.request(method, path, **kwargs).flush
-        raise Unity::OpenSearch::ResponseError.new(resp) unless resp.status.success?
+
+        unless resp.status.success?
+          case resp.code
+          when 404 then Unity::OpenSearch::Errors::NotFoundError.new(resp)
+          when 409 then Unity::OpenSearch::Errors::ConflictError.new(resp)
+          else Unity::OpenSearch::ResponseError.new(resp)
+          end
+        end
 
         resp.parse(:json)
       end
@@ -42,7 +49,8 @@ module Unity
       def search(index_name, body = {}, **kwargs)
         request(
           METHOD_GET, "/#{index_name}/_search",
-          params: kwargs[:parameters] || DEFAULT_PARAMETERS, json: body
+          params: kwargs[:parameters] || DEFAULT_PARAMETERS,
+          json: body
         )
       end
 
