@@ -34,10 +34,14 @@ module Unity
 
         unless resp.status.success?
           case resp.code
+          when 400
+            raise Unity::OpenSearch::Errors::BadRequestError.new(resp)
           when 404
             raise Unity::OpenSearch::Errors::NotFoundError.new(resp)
           when 409
             raise Unity::OpenSearch::Errors::ConflictError.new(resp)
+          when 500
+            raise Unity::OpenSearch::Errors::InternalServerError.new(resp)
           else
             raise Unity::OpenSearch::ResponseError.new(resp)
           end
