@@ -125,7 +125,7 @@ module Unity
       # @return [Hash{String => Object}]
       def update(index_name, doc_id, doc_attributes, **kwargs)
         request(
-          METHOD_PUT, "/#{index_name}/_doc/#{doc_id}",
+          METHOD_POST, "/#{index_name}/_update/#{doc_id}",
           params: kwargs[:parameters] || DEFAULT_PARAMETERS,
           json: { 'doc' => doc_attributes }
         )
