@@ -9,6 +9,9 @@ module Unity
       # @return [Integer]
       attr_accessor :retry_sleep_interval
 
+      # @return [HTTP::Client]
+      attr_reader :client
+
       METHOD_GET    = :get
       METHOD_POST   = :post
       METHOD_DELETE = :delete
@@ -26,15 +29,12 @@ module Unity
         # @type [Integer]
         @retry_sleep_interval = kwargs[:retry_sleep_interval] || 1
 
+        # @type [HTTP::Client]
         @client = HTTP.timeout(
           connect: kwargs[:http_connect_timeout] || 10,
           write: kwargs[:http_write_timeout] || 10,
           read: kwargs[:http_read_timeout] || 10
         ).persistent(url)
-      end
-
-      def client
-        @client
       end
 
       # @param method [Symbol]
