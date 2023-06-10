@@ -23,6 +23,8 @@ module Unity
       # @param http_connect_timeout [Integer]
       # @param http_write_timeout [Integer]
       # @param http_read_timeout [Integer]
+      # @param retry_max_count [Integer]
+      # @param retry_sleep_interval [Integer]
       def initialize(url = 'http://localhost:9200', **kwargs)
         # @type [Integer]
         @retry_max_count = kwargs[:retry_max_count] || 3
