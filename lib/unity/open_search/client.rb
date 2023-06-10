@@ -136,14 +136,14 @@ module Unity
         )
       end
 
-      # @param operations [Array<Hash{String => Object}>]
+      # @param request [Unity::OpenSearch::BulkRequest]
       # @return [Hash{String => Object}]
-      def bulk(operations, **kwargs)
+      def bulk(request, **kwargs)
         request(
           METHOD_POST, '/_bulk',
           headers: BULK_HTTP_HEADERS,
           params: kwargs[:parameters] || DEFAULT_PARAMETERS,
-          body: operations.collect(&:to_json).join(NEW_LINE) + NEW_LINE
+          body: request.as_request_body.collect(&:to_json).join(NEW_LINE) + NEW_LINE
         )
       end
     end
