@@ -17,6 +17,11 @@ module Unity
       METHOD_DELETE = :delete
       METHOD_PUT    = :put
 
+      NEW_LINE = "\n"
+      BULK_HTTP_HEADERS = {
+        'content-type' => 'application/json'
+      }.freeze
+
       DEFAULT_PARAMETERS = {}.freeze
 
       # @param url [String]
@@ -136,8 +141,9 @@ module Unity
       def bulk(operations, **kwargs)
         request(
           METHOD_POST, '/_bulk',
+          headers: BULK_HTTP_HEADERS,
           params: kwargs[:parameters] || DEFAULT_PARAMETERS,
-          json: operations
+          body: operations.collect(&:to_json).join(NEW_LINE) + NEW_LINE
         )
       end
     end
