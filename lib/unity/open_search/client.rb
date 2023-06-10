@@ -3,6 +3,12 @@
 module Unity
   module OpenSearch
     class Client
+      # @return [Integer]
+      attr_accessor :retry_max_count
+
+      # @return [Integer]
+      attr_accessor :retry_sleep_interval
+
       METHOD_GET    = :get
       METHOD_POST   = :post
       METHOD_DELETE = :delete
@@ -15,10 +21,15 @@ module Unity
       # @param http_write_timeout [Integer]
       # @param http_read_timeout [Integer]
       def initialize(url = 'http://localhost:9200', **kwargs)
+        # @type [Integer]
+        @retry_max_count = kwargs[:retry_max_count] || 3
+        # @type [Integer]
+        @retry_sleep_interval = kwargs[:retry_sleep_interval] || 1
+
         @client = HTTP.timeout(
-          connect: kwargs[:http_connect_timeout] || 15,
-          write: kwargs[:http_write_timeout] || 15,
-          read: kwargs[:http_read_timeout] || 15
+          connect: kwargs[:http_connect_timeout] || 10,
+          write: kwargs[:http_write_timeout] || 10,
+          read: kwargs[:http_read_timeout] || 10
         ).persistent(url)
       end
 
@@ -28,26 +39,38 @@ module Unity
 
       # @param method [Symbol]
       # @param path [String]
+      # @raise [HTTP::Error]
+      # @raise [Unity::OpenSearch::ResponseError]
       # @return [Hash{String => Object}]
       def request(method, path, **kwargs)
-        resp = @client.request(method, path, **kwargs).flush
+        retries_count = 0
 
-        unless resp.status.success?
-          case resp.code
-          when 400
-            raise Unity::OpenSearch::Errors::BadRequestError.new(resp)
-          when 404
-            raise Unity::OpenSearch::Errors::NotFoundError.new(resp)
-          when 409
-            raise Unity::OpenSearch::Errors::ConflictError.new(resp)
-          when 500
-            raise Unity::OpenSearch::Errors::InternalServerError.new(resp)
-          else
-            raise Unity::OpenSearch::ResponseError.new(resp)
+        begin
+          resp = @client.request(method, path, **kwargs).flush
+
+          unless resp.status.success?
+            case resp.code
+            when 400
+              raise Unity::OpenSearch::Errors::BadRequestError.new(resp)
+            when 404
+              raise Unity::OpenSearch::Errors::NotFoundError.new(resp)
+            when 409
+              raise Unity::OpenSearch::Errors::ConflictError.new(resp)
+            when 500
+              raise Unity::OpenSearch::Errors::InternalServerError.new(resp)
+            else
+              raise Unity::OpenSearch::ResponseError.new(resp)
+            end
           end
-        end
 
-        resp.parse(:json)
+          resp.parse(:json)
+        rescue HTTP::ConnectionError => e
+          raise e if retries_count >= @retry_max_count
+
+          retries_count += 1
+          sleep @retry_sleep_interval
+          retry
+        end
       end
 
       # @param index_name [String]

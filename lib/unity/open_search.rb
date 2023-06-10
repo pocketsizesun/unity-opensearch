@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'http'
+
 require_relative 'open_search/client'
 require_relative 'open_search/error'
 require_relative 'open_search/response_error'
